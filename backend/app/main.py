@@ -1,20 +1,27 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import get_settings
-from app.database import engine
-from app.models import Base
 from app.routers import auth, points, subthemes, themes, users
 
 settings = get_settings()
 
+ALEMBIC_INI_PATH = Path(__file__).resolve().parent.parent / "alembic.ini"
+
+
+def _run_migrations() -> None:
+    alembic_cfg = Config(str(ALEMBIC_INI_PATH))
+    command.upgrade(alembic_cfg, "head")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # TODO(phase 3): replace with Alembic-managed migrations applied on startup.
-    Base.metadata.create_all(bind=engine)
+    _run_migrations()
     yield
 
 
