@@ -1,0 +1,31 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Local SQLite database files — schema lives in backend/alembic/versions, not the .db file itself
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend build tooling
+frontend/node_modules/
+frontend/dist/
+
+# Build artifact: frontend copied into the backend before packaging
+backend/app/static/
+
+# Node/npm
+npm-debug.log*
+
+# User-local docker compose config (copied from .env.example) and its default bind-mounted
+# data folder — never commit either, same reasoning as the *.db rule above.
+.env
+/data/
+
+# Claude Code worktree sessions (parallel-agent isolation) — never commit
+.claude/worktrees/
+
+.vscode/
+.idea/
