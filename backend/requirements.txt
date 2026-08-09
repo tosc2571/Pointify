@@ -1,16 +1,15 @@
-fastapi==0.105.0
-uvicorn[standard]==0.23.2
-starlette==0.27.0
-SQLAlchemy==2.0.22
-alembic==1.13.1
-pydantic==2.7.0
-pydantic-settings==2.2.1
-passlib[bcrypt]==1.7.4
-bcrypt==4.0.1
-python-multipart==0.0.6
-itsdangerous==2.1.2
-python-dotenv==1.0.1
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+starlette==1.6.0
+SQLAlchemy==2.0.51
+alembic==1.19.1
+pydantic==2.13.4
+pydantic-settings==2.15.0
+bcrypt==5.0.0
+python-multipart==0.0.32
+itsdangerous==2.2.0
+python-dotenv==1.2.2
 
 # test-only
-pytest==8.0.0
-httpx==0.26.0
+pytest==9.1.1
+httpx==0.28.1
