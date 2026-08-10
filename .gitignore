@@ -27,5 +27,4 @@ npm-debug.log*
 # Claude Code worktree sessions (parallel-agent isolation) — never commit
 .claude/worktrees/
 
-.vscode/
 .idea/
