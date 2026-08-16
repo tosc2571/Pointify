@@ -27,6 +27,10 @@
   font-size: 0.9rem;
 }
 
+.app-user a {
+  color: inherit;
+}
+
 .app-user button {
   padding: 0.35rem 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.4);
