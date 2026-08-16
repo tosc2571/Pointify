@@ -1,0 +1,52 @@
+name: Release
+
+# Cutting a release: git tag v0.1.0 && git push origin v0.1.0
+# Docker-image-only (unlike FinFlow's win/linux self-contained binaries): Python has no
+# comparably simple single-file publish story, and Pointify's actual deployment path is
+# already Docker (see docker-compose.yml).
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker build -t pointify:release .
+
+      # Gate the release on an end-to-end smoke test of the exact image that will be
+      # published — a failed assertion fails the job, so no release/image goes out.
+      - name: Smoke test the image
+        run: bash scripts/smoke-test-docker.sh pointify:release
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "Pointify $GITHUB_REF_NAME" --generate-notes
+
+  docker:
+    # Only publish an image once it's been smoke-tested and the release actually created —
+    # a failed release job must not leave a stray image on GHCR.
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/tosc2571/pointify:${{ github.ref_name }}
+            ghcr.io/tosc2571/pointify:latest
