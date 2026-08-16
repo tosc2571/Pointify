@@ -14,3 +14,20 @@ filled in as each part lands.
 - **Backend:** FastAPI (Python), SQLAlchemy + Alembic, SQLite
 - **Frontend:** Angular
 - **Packaging:** Docker (single image, backend serves the built frontend)
+
+## Docker
+
+```
+cp .env.example .env   # then set POINTIFY_SECRET_KEY (see the comment in .env.example)
+docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+```
+
+This builds the image locally and starts it, storing data in `./data` (configurable via
+`POINTIFY_DATA_LOCATION` in `.env`). To run a published image instead of building locally,
+drop the `-f docker-compose.build.yml` part.
+
+To create the first admin user once the container is running:
+
+```
+docker exec -it pointify python -m scripts.set_admin <username> <password>
+```

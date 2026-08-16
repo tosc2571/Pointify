@@ -1,0 +1,12 @@
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+**/dist/
+backend/app/static/
+backend/.venv/
+*.db
+*.db-shm
+*.db-wal
+.git/
+.claude/
+.github/
