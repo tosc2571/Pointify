@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.subtheme import SubThemeWithPoints
+
 
 class ThemeCreate(BaseModel):
     title: str
@@ -24,3 +26,4 @@ class ThemeStats(BaseModel):
 
 class ThemeDetailOut(ThemeOut):
     stats: ThemeStats
+    subthemes: list[SubThemeWithPoints]

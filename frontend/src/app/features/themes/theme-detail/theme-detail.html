@@ -1,0 +1,50 @@
+<section class="theme-detail">
+  <p class="back"><a routerLink="/themes">&larr; All themes</a></p>
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (notFound()) {
+    <p class="empty">Theme not found.</p>
+  } @else if (theme(); as t) {
+    <h1>{{ t.title }}</h1>
+
+    <dl class="stats">
+      <div>
+        <dt>Points</dt>
+        <dd>{{ t.stats.total_points }}</dd>
+      </div>
+      <div>
+        <dt>Avg. rating</dt>
+        <dd>{{ t.stats.avg_rating }}</dd>
+      </div>
+      <div>
+        <dt>Pro</dt>
+        <dd>{{ t.stats.pro_count }}</dd>
+      </div>
+      <div>
+        <dt>Contra</dt>
+        <dd>{{ t.stats.contra_count }}</dd>
+      </div>
+    </dl>
+
+    <h2>Subthemes</h2>
+
+    <form class="new-subtheme" [formGroup]="subthemeForm" (ngSubmit)="submitSubtheme()">
+      <input type="text" formControlName="title" placeholder="New subtheme title" />
+      <button type="submit" [disabled]="subthemeForm.invalid || creatingSubtheme()">Add</button>
+    </form>
+
+    @if (t.subthemes.length === 0) {
+      <p class="empty">No subthemes yet.</p>
+    } @else {
+      <ul class="subthemes">
+        @for (subtheme of t.subthemes; track subtheme.id) {
+          <li>
+            <span class="subtheme-title">{{ subtheme.title }}</span>
+            <span class="point-count">{{ subtheme.points.length }} point(s)</span>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

@@ -1,6 +1,11 @@
 <section class="theme-list">
   <h1>Themes</h1>
 
+  <form class="new-theme" [formGroup]="form" (ngSubmit)="submit()">
+    <input type="text" formControlName="title" placeholder="New theme title" />
+    <button type="submit" [disabled]="form.invalid || creating()">Add</button>
+  </form>
+
   @if (loading()) {
     <p>Loading…</p>
   } @else if (themes().length === 0) {
@@ -8,7 +13,9 @@
   } @else {
     <ul>
       @for (theme of themes(); track theme.id) {
-        <li>{{ theme.title }}</li>
+        <li>
+          <a [routerLink]="['/themes', theme.id]">{{ theme.title }}</a>
+        </li>
       }
     </ul>
   }

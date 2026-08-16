@@ -22,6 +22,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/themes/theme-list/theme-list').then((m) => m.ThemeList),
       },
+      {
+        path: 'themes/:id',
+        loadComponent: () =>
+          import('./features/themes/theme-detail/theme-detail').then((m) => m.ThemeDetailPage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'themes' },
     ],
   },

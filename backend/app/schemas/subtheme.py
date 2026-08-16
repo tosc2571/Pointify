@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.point import PointOut
+
 
 class SubThemeCreate(BaseModel):
     title: str
@@ -11,3 +13,7 @@ class SubThemeOut(BaseModel):
     id: int
     title: str
     theme_id: int
+
+
+class SubThemeWithPoints(SubThemeOut):
+    points: list[PointOut]
