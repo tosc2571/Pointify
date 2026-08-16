@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, require_user
-from app.models import PointType, Theme, User
+from app.dependencies import get_db, require_theme_access, require_user
+from app.models import PointType, Theme, ThemeShare, User
 from app.schemas.subtheme import SubThemeWithPoints
 from app.schemas.theme import ThemeCreate, ThemeDetailOut, ThemeOut, ThemeStats
 
@@ -11,12 +12,17 @@ router = APIRouter(prefix="/api/themes", tags=["themes"])
 
 @router.get("", response_model=list[ThemeOut])
 def list_themes(db: Session = Depends(get_db), user: User = Depends(require_user)):
-    return db.query(Theme).all()
+    shared_theme_ids = db.query(ThemeShare.theme_id).filter(ThemeShare.user_id == user.id)
+    return (
+        db.query(Theme)
+        .filter(or_(Theme.owner_id == user.id, Theme.id.in_(shared_theme_ids)))
+        .all()
+    )
 
 
 @router.post("", response_model=ThemeOut, status_code=201)
 def create_theme(payload: ThemeCreate, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    theme = Theme(title=payload.title)
+    theme = Theme(title=payload.title, owner_id=user.id)
     db.add(theme)
     db.commit()
     db.refresh(theme)
@@ -24,11 +30,7 @@ def create_theme(payload: ThemeCreate, db: Session = Depends(get_db), user: User
 
 
 @router.get("/{theme_id}", response_model=ThemeDetailOut)
-def get_theme(theme_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    theme = db.query(Theme).filter(Theme.id == theme_id).first()
-    if not theme:
-        raise HTTPException(status_code=404, detail="Theme not found")
-
+def get_theme(theme: Theme = Depends(require_theme_access)):
     all_points = [p for st in theme.subthemes for p in st.points]
 
     def avg_rating(points_list):
@@ -46,6 +48,7 @@ def get_theme(theme_id: int, db: Session = Depends(get_db), user: User = Depends
         id=theme.id,
         title=theme.title,
         created_at=theme.created_at,
+        owner_id=theme.owner_id,
         stats=stats,
         subthemes=[SubThemeWithPoints.model_validate(st) for st in theme.subthemes],
     )

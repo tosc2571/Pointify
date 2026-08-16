@@ -27,6 +27,34 @@
       </div>
     </dl>
 
+    @if (isOwner()) {
+      <section class="sharing">
+        <h2>Shared with</h2>
+
+        <form class="new-share" [formGroup]="shareForm" (ngSubmit)="submitShare()">
+          <input type="text" formControlName="username" placeholder="Username" />
+          <button type="submit" [disabled]="shareForm.invalid || sharingBusy()">Share</button>
+        </form>
+
+        @if (shareError()) {
+          <p class="error">{{ shareError() }}</p>
+        }
+
+        @if (shares().length === 0) {
+          <p class="empty small">Not shared with anyone yet.</p>
+        } @else {
+          <ul class="shares">
+            @for (share of shares(); track share.user_id) {
+              <li>
+                <span>{{ share.username }}</span>
+                <button type="button" class="delete-button" (click)="revokeShare(share.user_id)">Revoke</button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+
     <h2>Subthemes</h2>
 
     <form class="new-subtheme" [formGroup]="subthemeForm" (ngSubmit)="submitSubtheme()">

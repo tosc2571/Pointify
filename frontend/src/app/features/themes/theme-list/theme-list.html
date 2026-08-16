@@ -14,7 +14,12 @@
     <ul>
       @for (theme of themes(); track theme.id) {
         <li>
-          <a [routerLink]="['/themes', theme.id]">{{ theme.title }}</a>
+          <a [routerLink]="['/themes', theme.id]">
+            {{ theme.title }}
+            @if (theme.owner_id !== auth.currentUser()?.id) {
+              <span class="badge">shared</span>
+            }
+          </a>
         </li>
       }
     </ul>

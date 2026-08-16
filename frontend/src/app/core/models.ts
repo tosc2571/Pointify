@@ -8,6 +8,12 @@ export interface Theme {
   id: number;
   title: string;
   created_at: string;
+  owner_id: number;
+}
+
+export interface Share {
+  user_id: number;
+  username: string;
 }
 
 export interface ThemeStats {

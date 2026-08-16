@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { PointType, ThemeDetail } from '../../../core/models';
+import { AuthService } from '../../../core/auth.service';
+import { PointType, Share, ThemeDetail } from '../../../core/models';
 import { PointsService } from '../../points/points.service';
 import { ThemesService } from '../themes.service';
 
@@ -17,6 +18,7 @@ export class ThemeDetailPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly themesService = inject(ThemesService);
   private readonly pointsService = inject(PointsService);
+  private readonly auth = inject(AuthService);
 
   protected readonly theme = signal<ThemeDetail | null>(null);
   protected readonly loading = signal(true);
@@ -24,6 +26,11 @@ export class ThemeDetailPage implements OnInit {
   protected readonly creatingSubtheme = signal(false);
   protected readonly expandedSubthemeId = signal<number | null>(null);
   protected readonly creatingPoint = signal(false);
+
+  protected readonly isOwner = computed(() => this.theme()?.owner_id === this.auth.currentUser()?.id);
+  protected readonly shares = signal<Share[]>([]);
+  protected readonly sharingBusy = signal(false);
+  protected readonly shareError = signal<string | null>(null);
 
   protected readonly subthemeForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
@@ -33,6 +40,10 @@ export class ThemeDetailPage implements OnInit {
     type: ['pro' as PointType, Validators.required],
     text: ['', Validators.required],
     rating: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
+  });
+
+  protected readonly shareForm = this.fb.nonNullable.group({
+    username: ['', Validators.required],
   });
 
   private themeId!: number;
@@ -48,11 +59,20 @@ export class ThemeDetailPage implements OnInit {
       next: (theme) => {
         this.theme.set(theme);
         this.loading.set(false);
+        if (this.isOwner()) {
+          this.loadShares();
+        }
       },
       error: () => {
         this.notFound.set(true);
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadShares(): void {
+    this.themesService.listShares(this.themeId).subscribe({
+      next: (shares) => this.shares.set(shares),
     });
   }
 
@@ -94,6 +114,32 @@ export class ThemeDetailPage implements OnInit {
         this.loadTheme();
       },
       error: () => this.creatingPoint.set(false),
+    });
+  }
+
+  submitShare(): void {
+    if (this.shareForm.invalid) {
+      return;
+    }
+    this.sharingBusy.set(true);
+    this.shareError.set(null);
+    const { username } = this.shareForm.getRawValue();
+    this.themesService.share(this.themeId, username).subscribe({
+      next: () => {
+        this.shareForm.reset({ username: '' });
+        this.sharingBusy.set(false);
+        this.loadShares();
+      },
+      error: () => {
+        this.shareError.set('Could not share (user may not exist or already has access).');
+        this.sharingBusy.set(false);
+      },
+    });
+  }
+
+  revokeShare(userId: number): void {
+    this.themesService.revokeShare(this.themeId, userId).subscribe({
+      next: () => this.loadShares(),
     });
   }
 }

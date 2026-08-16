@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
+import { AuthService } from '../../../core/auth.service';
 import { Theme } from '../../../core/models';
 import { ThemesService } from '../themes.service';
 
@@ -14,6 +15,7 @@ import { ThemesService } from '../themes.service';
 export class ThemeList implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly themesService = inject(ThemesService);
+  protected readonly auth = inject(AuthService);
 
   protected readonly themes = signal<Theme[]>([]);
   protected readonly loading = signal(true);
