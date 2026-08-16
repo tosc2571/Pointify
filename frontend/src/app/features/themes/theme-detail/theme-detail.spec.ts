@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 
 import { AuthService } from '../../../core/auth.service';
 import { ThemeDetail } from '../../../core/models';
@@ -150,5 +151,39 @@ describe('ThemeDetailPage', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.sharing')).toBeFalsy();
+  });
+
+  it('requests the Markdown export and triggers a download', () => {
+    const createObjectURL = vi.fn(() => 'blob:mock-url');
+    const revokeObjectURL = vi.fn();
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    const fixture = TestBed.createComponent(ThemeDetailPage);
+    fixture.detectChanges();
+
+    const theme: ThemeDetail = {
+      id: 1,
+      title: 'Coffee vs tea',
+      created_at: '2026-01-01T00:00:00Z',
+      owner_id: 1,
+      stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
+      subthemes: [],
+    };
+    httpMock.expectOne('/api/themes/1').flush(theme);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.export-button').click();
+
+    const req = httpMock.expectOne('/api/themes/1/export');
+    expect(req.request.method).toBe('GET');
+    req.flush('# Coffee vs tea\n');
+
+    expect(createObjectURL).toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+
+    clickSpy.mockRestore();
   });
 });

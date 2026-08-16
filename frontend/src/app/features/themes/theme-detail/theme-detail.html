@@ -6,7 +6,10 @@
   } @else if (notFound()) {
     <p class="empty">Theme not found.</p>
   } @else if (theme(); as t) {
-    <h1>{{ t.title }}</h1>
+    <div class="title-row">
+      <h1>{{ t.title }}</h1>
+      <button type="button" class="export-button" (click)="exportMarkdown()">Export as Markdown</button>
+    </div>
 
     <dl class="stats">
       <div>

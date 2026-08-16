@@ -142,4 +142,16 @@ export class ThemeDetailPage implements OnInit {
       next: () => this.loadShares(),
     });
   }
+
+  exportMarkdown(): void {
+    this.themesService.exportMarkdown(this.themeId).subscribe((markdown) => {
+      const blob = new Blob([markdown], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${this.theme()?.title ?? 'theme'}.md`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+  }
 }
