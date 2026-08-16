@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { SubTheme, Theme, ThemeDetail } from '../../core/models';
+import { Share, SubTheme, Theme, ThemeDetail } from '../../core/models';
 
 @Injectable({ providedIn: 'root' })
 export class ThemesService {
@@ -22,5 +22,17 @@ export class ThemesService {
 
   createSubtheme(themeId: number, title: string): Observable<SubTheme> {
     return this.http.post<SubTheme>(`/api/themes/${themeId}/subthemes`, { title });
+  }
+
+  listShares(themeId: number): Observable<Share[]> {
+    return this.http.get<Share[]>(`/api/themes/${themeId}/shares`);
+  }
+
+  share(themeId: number, username: string): Observable<Share> {
+    return this.http.post<Share>(`/api/themes/${themeId}/shares`, { username });
+  }
+
+  revokeShare(themeId: number, userId: number): Observable<void> {
+    return this.http.delete<void>(`/api/themes/${themeId}/shares/${userId}`);
   }
 }

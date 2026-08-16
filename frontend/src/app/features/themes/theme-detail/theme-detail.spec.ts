@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideRouter } from '@angular/router';
 
+import { AuthService } from '../../../core/auth.service';
 import { ThemeDetail } from '../../../core/models';
 import { ThemeDetailPage } from './theme-detail';
 
@@ -38,6 +39,7 @@ describe('ThemeDetailPage', () => {
       id: 1,
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
+      owner_id: 1,
       stats: { total_points: 1, avg_rating: 4, pro_count: 1, contra_count: 0 },
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [] }],
     };
@@ -66,6 +68,7 @@ describe('ThemeDetailPage', () => {
       id: 1,
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
+      owner_id: 1,
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [] }],
     };
@@ -99,5 +102,53 @@ describe('ThemeDetailPage', () => {
       ...theme,
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [{ id: 1, subtheme_id: 1, user_id: 1, type: 'pro', text: 'Antioxidants', rating: 4, created_at: '2026-01-01T00:00:00Z' }] }],
     });
+  });
+
+  it('shows the sharing section (and loads shares) only for the owner', () => {
+    const auth = TestBed.inject(AuthService);
+    auth.login('alice', 'hunter2').subscribe();
+    httpMock.expectOne('/api/auth/login').flush({ id: 1, username: 'alice', is_admin: false });
+
+    const fixture = TestBed.createComponent(ThemeDetailPage);
+    fixture.detectChanges();
+
+    const theme: ThemeDetail = {
+      id: 1,
+      title: 'Coffee vs tea',
+      created_at: '2026-01-01T00:00:00Z',
+      owner_id: 1,
+      stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
+      subthemes: [],
+    };
+    httpMock.expectOne('/api/themes/1').flush(theme);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/themes/1/shares').flush([{ user_id: 2, username: 'bob' }]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.sharing')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.shares')?.textContent).toContain('bob');
+  });
+
+  it('hides the sharing section for a non-owner', () => {
+    const auth = TestBed.inject(AuthService);
+    auth.login('bob', 'hunter2').subscribe();
+    httpMock.expectOne('/api/auth/login').flush({ id: 2, username: 'bob', is_admin: false });
+
+    const fixture = TestBed.createComponent(ThemeDetailPage);
+    fixture.detectChanges();
+
+    const theme: ThemeDetail = {
+      id: 1,
+      title: 'Coffee vs tea',
+      created_at: '2026-01-01T00:00:00Z',
+      owner_id: 1,
+      stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
+      subthemes: [],
+    };
+    httpMock.expectOne('/api/themes/1').flush(theme);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.sharing')).toBeFalsy();
   });
 });

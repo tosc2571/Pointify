@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import get_settings
-from app.routers import auth, points, subthemes, themes, users
+from app.routers import auth, points, shares, subthemes, themes, users
 
 settings = get_settings()
 
@@ -39,6 +39,7 @@ app.include_router(auth.router)
 app.include_router(themes.router)
 app.include_router(subthemes.router)
 app.include_router(points.router)
+app.include_router(shares.router)
 app.include_router(users.router)
 
 # Serves the built Angular SPA (copied into STATIC_DIR by the Dockerfile) when present.

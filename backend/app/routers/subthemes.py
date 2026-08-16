@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, require_user
-from app.models import SubTheme, User
+from app.dependencies import get_db, require_theme_access
+from app.models import SubTheme, Theme
 from app.schemas.subtheme import SubThemeCreate, SubThemeOut
 
 router = APIRouter(prefix="/api/themes", tags=["subthemes"])
@@ -10,12 +10,11 @@ router = APIRouter(prefix="/api/themes", tags=["subthemes"])
 
 @router.post("/{theme_id}/subthemes", response_model=SubThemeOut, status_code=201)
 def create_subtheme(
-    theme_id: int,
     payload: SubThemeCreate,
+    theme: Theme = Depends(require_theme_access),
     db: Session = Depends(get_db),
-    user: User = Depends(require_user),
 ):
-    subtheme = SubTheme(title=payload.title, theme_id=theme_id)
+    subtheme = SubTheme(title=payload.title, theme_id=theme.id)
     db.add(subtheme)
     db.commit()
     db.refresh(subtheme)

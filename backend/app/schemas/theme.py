@@ -15,6 +15,7 @@ class ThemeOut(BaseModel):
     id: int
     title: str
     created_at: datetime
+    owner_id: int
 
 
 class ThemeStats(BaseModel):

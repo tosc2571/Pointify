@@ -25,7 +25,9 @@ describe('ThemeList', () => {
     const fixture = TestBed.createComponent(ThemeList);
     fixture.detectChanges();
 
-    const themes: Theme[] = [{ id: 1, title: 'Remote work', created_at: '2026-01-01T00:00:00Z' }];
+    const themes: Theme[] = [
+      { id: 1, title: 'Remote work', created_at: '2026-01-01T00:00:00Z', owner_id: 1 },
+    ];
     httpMock.expectOne('/api/themes').flush(themes);
     fixture.detectChanges();
 
@@ -57,8 +59,10 @@ describe('ThemeList', () => {
 
     const createReq = httpMock.expectOne('/api/themes');
     expect(createReq.request.method).toBe('POST');
-    createReq.flush({ id: 2, title: 'New theme', created_at: '2026-01-01T00:00:00Z' });
+    createReq.flush({ id: 2, title: 'New theme', created_at: '2026-01-01T00:00:00Z', owner_id: 1 });
 
-    httpMock.expectOne('/api/themes').flush([{ id: 2, title: 'New theme', created_at: '2026-01-01T00:00:00Z' }]);
+    httpMock
+      .expectOne('/api/themes')
+      .flush([{ id: 2, title: 'New theme', created_at: '2026-01-01T00:00:00Z', owner_id: 1 }]);
   });
 });
