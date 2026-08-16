@@ -33,6 +33,12 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadComponent: () => import('./features/users/user-list/user-list').then((m) => m.UserList),
       },
+      {
+        path: 'admin/settings',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/settings/settings-page/settings-page').then((m) => m.SettingsPage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'themes' },
     ],
   },

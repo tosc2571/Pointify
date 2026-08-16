@@ -16,6 +16,10 @@ export interface Share {
   username: string;
 }
 
+export interface Settings {
+  auto_backup_enabled: boolean;
+}
+
 export interface ThemeStats {
   total_points: number;
   avg_rating: number;
