@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal
+from app.database import DB_PATH, SessionLocal
 from app.models import SubTheme, Theme, ThemeShare, User
 
 
@@ -13,6 +13,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def get_db_path() -> str:
+    return DB_PATH
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:

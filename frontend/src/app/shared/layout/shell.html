@@ -5,6 +5,7 @@
       <div class="app-user">
         @if (user.is_admin) {
           <a routerLink="/admin/users">Users</a>
+          <a routerLink="/admin/settings">Settings</a>
         }
         <span>{{ user.username }}</span>
         <button type="button" (click)="logout()">Log out</button>

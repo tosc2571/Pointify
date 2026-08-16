@@ -31,3 +31,13 @@ To create the first admin user once the container is running:
 ```
 docker exec -it pointify python -m scripts.set_admin <username> <password>
 ```
+
+## Backups
+
+A dated backup (`backups/pointify-<date>.db`, next to the database) is taken automatically —
+at most once a day, and only if the database actually changed since the last one — so an
+accidental change is always recoverable. This is checked at startup and periodically while the
+app keeps running (so a long-running instance, e.g. in Docker, doesn't need to be restarted to
+get a new day's backup), and only the 10 most recent backups are kept; older ones are pruned
+automatically. Toggle it under an admin account's **Settings** page. In Docker, backups land in
+the same `/data` volume as the database, so no extra configuration is needed.

@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.dependencies import get_db
+from app.dependencies import get_db, get_db_path
 from app.main import app
 from app.models import Base
 
@@ -21,11 +21,15 @@ def db_session(tmp_path):
 
 
 @pytest.fixture()
-def client(db_session):
+def client(db_session, tmp_path):
     def override_get_db():
         yield db_session
 
+    def override_get_db_path() -> str:
+        return str(tmp_path / "test.db")
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_db_path] = override_get_db_path
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
