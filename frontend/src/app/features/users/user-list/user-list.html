@@ -1,0 +1,46 @@
+<section class="user-list">
+  <h1>Users</h1>
+
+  <form class="new-user" [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Username
+      <input type="text" formControlName="username" />
+    </label>
+    <label>
+      Password
+      <input type="password" formControlName="password" autocomplete="new-password" />
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" formControlName="is_admin" />
+      Admin
+    </label>
+    <button type="submit" [disabled]="form.invalid || creating()">Create user</button>
+  </form>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else {
+    <ul>
+      @for (user of users(); track user.id) {
+        <li>
+          <span class="username">{{ user.username }}</span>
+          @if (user.is_admin) {
+            <span class="badge">admin</span>
+          }
+          <button
+            type="button"
+            class="delete-button"
+            [disabled]="user.id === currentUser()?.id"
+            (click)="deleteUser(user.id)"
+          >
+            Delete
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

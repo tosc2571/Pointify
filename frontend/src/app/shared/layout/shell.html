@@ -3,6 +3,9 @@
     <span class="app-title">Pointify</span>
     @if (currentUser(); as user) {
       <div class="app-user">
+        @if (user.is_admin) {
+          <a routerLink="/admin/users">Users</a>
+        }
         <span>{{ user.username }}</span>
         <button type="button" (click)="logout()">Log out</button>
       </div>
