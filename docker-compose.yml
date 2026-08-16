@@ -1,0 +1,22 @@
+# Example self-hosting setup (e.g. on a NAS). No authentication in front of it — keep it on
+# your own network unless you know what you're doing.
+#
+# Configure via a .env file next to this one — copy .env.example to .env and edit it there.
+# Do not edit the values below directly; POINTIFY_PORT/POINTIFY_DATA_LOCATION/POINTIFY_VERSION/
+# POINTIFY_SECRET_KEY all come from .env so an update never means re-editing this file.
+
+services:
+  pointify:
+    container_name: pointify
+    image: ghcr.io/tosc2571/pointify:${POINTIFY_VERSION:-latest}
+    ports:
+      - "${POINTIFY_PORT:-8000}:8000"
+    volumes:
+      # Do not edit the next line. If you want to change where Pointify stores its data,
+      # edit the value of POINTIFY_DATA_LOCATION in the .env file instead.
+      - ${POINTIFY_DATA_LOCATION:-./data}:/data
+    environment:
+      # Required — the app refuses to start without this set outside development.
+      # Secures session cookies. Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
+      SECRET_KEY: ${POINTIFY_SECRET_KEY}
+    restart: unless-stopped
