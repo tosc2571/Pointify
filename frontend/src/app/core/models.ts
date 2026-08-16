@@ -17,10 +17,6 @@ export interface ThemeStats {
   contra_count: number;
 }
 
-export interface ThemeDetail extends Theme {
-  stats: ThemeStats;
-}
-
 export interface SubTheme {
   id: number;
   title: string;
@@ -37,4 +33,13 @@ export interface Point {
   text: string;
   rating: number;
   created_at: string;
+}
+
+export interface SubThemeWithPoints extends SubTheme {
+  points: Point[];
+}
+
+export interface ThemeDetail extends Theme {
+  stats: ThemeStats;
+  subthemes: SubThemeWithPoints[];
 }

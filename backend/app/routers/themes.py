@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, require_user
 from app.models import PointType, Theme, User
+from app.schemas.subtheme import SubThemeWithPoints
 from app.schemas.theme import ThemeCreate, ThemeDetailOut, ThemeOut, ThemeStats
 
 router = APIRouter(prefix="/api/themes", tags=["themes"])
@@ -41,5 +42,10 @@ def get_theme(theme_id: int, db: Session = Depends(get_db), user: User = Depends
         pro_count=len([p for p in all_points if p.type == PointType.PRO]),
         contra_count=len([p for p in all_points if p.type == PointType.CONTRA]),
     )
-    theme_out = ThemeOut.model_validate(theme)
-    return ThemeDetailOut(**theme_out.model_dump(), stats=stats)
+    return ThemeDetailOut(
+        id=theme.id,
+        title=theme.title,
+        created_at=theme.created_at,
+        stats=stats,
+        subthemes=[SubThemeWithPoints.model_validate(st) for st in theme.subthemes],
+    )

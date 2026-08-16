@@ -45,3 +45,21 @@ def test_get_unknown_theme_returns_404(client):
     _login(client)
     resp = client.get("/api/themes/999")
     assert resp.status_code == 404
+
+
+def test_theme_detail_includes_subthemes_with_points(client):
+    _login(client)
+    theme_id = client.post("/api/themes", json={"title": "Coffee vs tea"}).json()["id"]
+    subtheme_id = client.post(f"/api/themes/{theme_id}/subthemes", json={"title": "Health"}).json()["id"]
+    client.post(
+        f"/api/subthemes/{subtheme_id}/points",
+        json={"type": "pro", "text": "Antioxidants", "rating": 4},
+    )
+
+    resp = client.get(f"/api/themes/{theme_id}")
+    assert resp.status_code == 200
+    subthemes = resp.json()["subthemes"]
+    assert len(subthemes) == 1
+    assert subthemes[0]["title"] == "Health"
+    assert len(subthemes[0]["points"]) == 1
+    assert subthemes[0]["points"][0]["text"] == "Antioxidants"
