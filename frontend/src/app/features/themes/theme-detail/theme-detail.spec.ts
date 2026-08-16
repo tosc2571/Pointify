@@ -57,4 +57,47 @@ describe('ThemeDetailPage', () => {
 
     expect(fixture.nativeElement.querySelector('.empty')?.textContent).toContain('Theme not found');
   });
+
+  it('adds a point to a subtheme and reloads the theme', () => {
+    const fixture = TestBed.createComponent(ThemeDetailPage);
+    fixture.detectChanges();
+
+    const theme: ThemeDetail = {
+      id: 1,
+      title: 'Coffee vs tea',
+      created_at: '2026-01-01T00:00:00Z',
+      stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
+      subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [] }],
+    };
+    httpMock.expectOne('/api/themes/1').flush(theme);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.link-button').click();
+    fixture.detectChanges();
+
+    const instance = fixture.componentInstance as unknown as {
+      pointForm: { setValue: (v: unknown) => void };
+    };
+    instance.pointForm.setValue({ type: 'pro', text: 'Antioxidants', rating: 4 });
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.new-point').dispatchEvent(new Event('submit'));
+
+    const createReq = httpMock.expectOne('/api/subthemes/1/points');
+    expect(createReq.request.method).toBe('POST');
+    expect(createReq.request.body).toEqual({ type: 'pro', text: 'Antioxidants', rating: 4 });
+    createReq.flush({
+      id: 1,
+      subtheme_id: 1,
+      user_id: 1,
+      type: 'pro',
+      text: 'Antioxidants',
+      rating: 4,
+      created_at: '2026-01-01T00:00:00Z',
+    });
+
+    httpMock.expectOne('/api/themes/1').flush({
+      ...theme,
+      subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [{ id: 1, subtheme_id: 1, user_id: 1, type: 'pro', text: 'Antioxidants', rating: 4, created_at: '2026-01-01T00:00:00Z' }] }],
+    });
+  });
 });

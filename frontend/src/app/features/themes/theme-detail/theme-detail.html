@@ -40,8 +40,53 @@
       <ul class="subthemes">
         @for (subtheme of t.subthemes; track subtheme.id) {
           <li>
-            <span class="subtheme-title">{{ subtheme.title }}</span>
-            <span class="point-count">{{ subtheme.points.length }} point(s)</span>
+            <div class="subtheme-header">
+              <span class="subtheme-title">{{ subtheme.title }}</span>
+              <button type="button" class="link-button" (click)="toggleAddPoint(subtheme.id)">
+                {{ expandedSubthemeId() === subtheme.id ? 'Cancel' : '+ Add point' }}
+              </button>
+            </div>
+
+            @if (subtheme.points.length > 0) {
+              <ul class="points">
+                @for (point of subtheme.points; track point.id) {
+                  <li>
+                    <span class="point-type" [class.contra]="point.type === 'contra'">{{ point.type }}</span>
+                    <span class="point-text">{{ point.text }}</span>
+                    <span class="point-rating">★ {{ point.rating }}</span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty small">No points yet.</p>
+            }
+
+            @if (expandedSubthemeId() === subtheme.id) {
+              <form class="new-point" [formGroup]="pointForm" (ngSubmit)="submitPoint(subtheme.id)">
+                <label>
+                  Type
+                  <select formControlName="type">
+                    <option value="pro">Pro</option>
+                    <option value="contra">Contra</option>
+                  </select>
+                </label>
+                <label>
+                  Rating
+                  <select formControlName="rating">
+                    <option [value]="1">1</option>
+                    <option [value]="2">2</option>
+                    <option [value]="3">3</option>
+                    <option [value]="4">4</option>
+                    <option [value]="5">5</option>
+                  </select>
+                </label>
+                <label class="text-label">
+                  Text
+                  <input type="text" formControlName="text" />
+                </label>
+                <button type="submit" [disabled]="pointForm.invalid || creatingPoint()">Save</button>
+              </form>
+            }
           </li>
         }
       </ul>
