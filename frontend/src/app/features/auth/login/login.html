@@ -1,0 +1,23 @@
+<section class="auth-form">
+  <h1>Log in</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Username
+      <input type="text" formControlName="username" autocomplete="username" />
+    </label>
+
+    <label>
+      Password
+      <input type="password" formControlName="password" autocomplete="current-password" />
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="form.invalid || submitting()">Log in</button>
+  </form>
+
+  <p>No account yet? <a routerLink="/register">Register</a></p>
+</section>
