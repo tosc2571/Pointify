@@ -9,6 +9,24 @@
   text-decoration: none;
 }
 
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.export-button {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 0.25rem;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

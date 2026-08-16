@@ -35,4 +35,8 @@ export class ThemesService {
   revokeShare(themeId: number, userId: number): Observable<void> {
     return this.http.delete<void>(`/api/themes/${themeId}/shares/${userId}`);
   }
+
+  exportMarkdown(themeId: number): Observable<string> {
+    return this.http.get(`/api/themes/${themeId}/export`, { responseType: 'text' });
+  }
 }

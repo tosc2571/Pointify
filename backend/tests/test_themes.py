@@ -63,3 +63,36 @@ def test_theme_detail_includes_subthemes_with_points(client):
     assert subthemes[0]["title"] == "Health"
     assert len(subthemes[0]["points"]) == 1
     assert subthemes[0]["points"][0]["text"] == "Antioxidants"
+
+
+def test_export_markdown_includes_title_stats_and_points(client):
+    _login(client)
+    theme_id = client.post("/api/themes", json={"title": "Coffee vs tea"}).json()["id"]
+    subtheme_id = client.post(f"/api/themes/{theme_id}/subthemes", json={"title": "Health"}).json()["id"]
+    client.post(
+        f"/api/subthemes/{subtheme_id}/points",
+        json={"type": "pro", "text": "Antioxidants", "rating": 4},
+    )
+    client.post(f"/api/themes/{theme_id}/subthemes", json={"title": "Empty subtheme"})
+
+    resp = client.get(f"/api/themes/{theme_id}/export")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/markdown")
+
+    body = resp.text
+    assert "# Coffee vs tea" in body
+    assert "1 points" in body
+    assert "## Health" in body
+    assert "**Pro** (★4): Antioxidants" in body
+    assert "## Empty subtheme" in body
+    assert "_No points yet._" in body
+
+
+def test_export_markdown_requires_theme_access(client):
+    _login(client, "alice")
+    theme_id = client.post("/api/themes", json={"title": "Alice's theme"}).json()["id"]
+    client.post("/api/auth/logout")
+
+    _login(client, "bob")
+    resp = client.get(f"/api/themes/{theme_id}/export")
+    assert resp.status_code == 404

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import Response
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,42 @@ from app.schemas.subtheme import SubThemeWithPoints
 from app.schemas.theme import ThemeCreate, ThemeDetailOut, ThemeOut, ThemeStats
 
 router = APIRouter(prefix="/api/themes", tags=["themes"])
+
+
+def _compute_stats(theme: Theme) -> ThemeStats:
+    all_points = [p for st in theme.subthemes for p in st.points]
+
+    def avg_rating(points_list):
+        if not points_list:
+            return 0
+        return round(sum(p.rating for p in points_list) / len(points_list), 1)
+
+    return ThemeStats(
+        total_points=len(all_points),
+        avg_rating=avg_rating(all_points),
+        pro_count=len([p for p in all_points if p.type == PointType.PRO]),
+        contra_count=len([p for p in all_points if p.type == PointType.CONTRA]),
+    )
+
+
+def _render_markdown(theme: Theme, stats: ThemeStats) -> str:
+    lines = [f"# {theme.title}", ""]
+    lines.append(
+        f"**Stats:** {stats.total_points} points · avg rating {stats.avg_rating} · "
+        f"{stats.pro_count} pro · {stats.contra_count} contra"
+    )
+    lines.append("")
+    for subtheme in theme.subthemes:
+        lines.append(f"## {subtheme.title}")
+        lines.append("")
+        if not subtheme.points:
+            lines.append("_No points yet._")
+        else:
+            for point in subtheme.points:
+                label = "Pro" if point.type == PointType.PRO else "Contra"
+                lines.append(f"- **{label}** (★{point.rating}): {point.text}")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
 
 
 @router.get("", response_model=list[ThemeOut])
@@ -31,19 +68,7 @@ def create_theme(payload: ThemeCreate, db: Session = Depends(get_db), user: User
 
 @router.get("/{theme_id}", response_model=ThemeDetailOut)
 def get_theme(theme: Theme = Depends(require_theme_access)):
-    all_points = [p for st in theme.subthemes for p in st.points]
-
-    def avg_rating(points_list):
-        if not points_list:
-            return 0
-        return round(sum(p.rating for p in points_list) / len(points_list), 1)
-
-    stats = ThemeStats(
-        total_points=len(all_points),
-        avg_rating=avg_rating(all_points),
-        pro_count=len([p for p in all_points if p.type == PointType.PRO]),
-        contra_count=len([p for p in all_points if p.type == PointType.CONTRA]),
-    )
+    stats = _compute_stats(theme)
     return ThemeDetailOut(
         id=theme.id,
         title=theme.title,
@@ -52,3 +77,9 @@ def get_theme(theme: Theme = Depends(require_theme_access)):
         stats=stats,
         subthemes=[SubThemeWithPoints.model_validate(st) for st in theme.subthemes],
     )
+
+
+@router.get("/{theme_id}/export")
+def export_theme_markdown(theme: Theme = Depends(require_theme_access)):
+    markdown = _render_markdown(theme, _compute_stats(theme))
+    return Response(content=markdown, media_type="text/markdown; charset=utf-8")
