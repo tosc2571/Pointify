@@ -44,6 +44,44 @@
       </div>
     </dl>
 
+    <section class="notes-section">
+      <div class="notes-toolbar">
+        <h2>Key takeaways</h2>
+        <div class="notes-toolbar-actions">
+          <button
+            type="button"
+            class="mode-button"
+            [class.active]="notesMode() === 'edit'"
+            (click)="showNotesEdit()"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            class="mode-button"
+            [class.active]="notesMode() === 'preview'"
+            (click)="showNotesPreview()"
+          >
+            Preview
+          </button>
+          <button type="button" class="save-button" [disabled]="savingNotes()" (click)="saveNotes()">Save</button>
+        </div>
+      </div>
+
+      @if (notesMode() === 'edit') {
+        <textarea
+          class="notes-editor"
+          [(ngModel)]="notesContent"
+          spellcheck="false"
+          placeholder="Document key takeaways here — Markdown supported, including &#96;&#96;&#96;mermaid diagrams."
+        ></textarea>
+      } @else if (notesContent.trim()) {
+        <div class="markdown-preview" [innerHTML]="notesRenderedHtml()"></div>
+      } @else {
+        <p class="empty small">No key takeaways documented yet — click Edit to add some.</p>
+      }
+    </section>
+
     @if (isOwner()) {
       <section class="sharing">
         <h2>Shared with</h2>

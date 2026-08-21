@@ -76,6 +76,7 @@ def get_theme(theme: Theme = Depends(require_theme_access)):
         owner_id=theme.owner_id,
         stats=stats,
         subthemes=[SubThemeWithPoints.model_validate(st) for st in theme.subthemes],
+        notes=theme.notes,
     )
 
 
@@ -93,6 +94,8 @@ def update_theme(
 ):
     if payload.title is not None:
         theme.title = payload.title
+    if payload.notes is not None:
+        theme.notes = payload.notes
     db.commit()
     db.refresh(theme)
     return theme

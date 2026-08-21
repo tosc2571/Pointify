@@ -52,4 +52,5 @@ export interface SubThemeWithPoints extends SubTheme {
 export interface ThemeDetail extends Theme {
   stats: ThemeStats;
   subthemes: SubThemeWithPoints[];
+  notes: string;
 }

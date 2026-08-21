@@ -20,8 +20,8 @@ export class ThemesService {
     return this.http.post<Theme>('/api/themes', { title });
   }
 
-  update(themeId: number, title: string): Observable<Theme> {
-    return this.http.patch<Theme>(`/api/themes/${themeId}`, { title });
+  update(themeId: number, payload: { title?: string; notes?: string }): Observable<Theme> {
+    return this.http.patch<Theme>(`/api/themes/${themeId}`, payload);
   }
 
   delete(themeId: number): Observable<void> {
