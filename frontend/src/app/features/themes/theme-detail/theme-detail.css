@@ -27,6 +27,48 @@
   white-space: nowrap;
 }
 
+.title-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.title-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.title-edit input {
+  flex: 1;
+  min-width: 12rem;
+  padding: 0.5rem;
+  font-size: 1.25rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 0.25rem;
+}
+
+.title-edit button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 0.25rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.link-button.danger {
+  color: #b91c1c;
+}
+
+.cancel-button {
+  padding: 0.45rem 1rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 0.25rem;
+  background: #fff;
+  cursor: pointer;
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -110,6 +152,34 @@
   gap: 0.5rem;
 }
 
+.subtheme-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.subtheme-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.subtheme-edit input {
+  flex: 1;
+  min-width: 10rem;
+  padding: 0.4rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 0.25rem;
+}
+
+.subtheme-edit button {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 0.25rem;
+  background: #fff;
+  cursor: pointer;
+}
+
 .link-button {
   border: none;
   background: none;
@@ -162,6 +232,12 @@
 .point-rating {
   color: #616e7c;
   font-size: 0.875rem;
+}
+
+.point-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 .new-point {

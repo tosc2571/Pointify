@@ -7,6 +7,10 @@ class SubThemeCreate(BaseModel):
     title: str
 
 
+class SubThemeUpdate(BaseModel):
+    title: str
+
+
 class SubThemeOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
