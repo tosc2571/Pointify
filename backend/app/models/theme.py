@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -13,6 +13,7 @@ class Theme(Base):
     title = Column(String, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    notes = Column(Text, nullable=False, default="")
 
     owner = relationship("User")
     subthemes = relationship("SubTheme", back_populates="theme", cascade="all, delete-orphan")

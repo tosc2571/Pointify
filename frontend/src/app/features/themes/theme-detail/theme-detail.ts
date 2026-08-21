@@ -1,15 +1,29 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  OnInit,
+  afterNextRender,
+  computed,
+  inject,
+  runInInjectionContext,
+  signal,
+} from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import mermaid from 'mermaid';
 
 import { AuthService } from '../../../core/auth.service';
 import { Point, PointType, Share, ThemeDetail } from '../../../core/models';
+import { renderMarkdown } from '../../../shared/markdown';
 import { PointsService } from '../../points/points.service';
 import { ThemesService } from '../themes.service';
 
+mermaid.initialize({ startOnLoad: false });
+
 @Component({
   selector: 'app-theme-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './theme-detail.html',
   styleUrl: './theme-detail.css',
 })
@@ -20,6 +34,8 @@ export class ThemeDetailPage implements OnInit {
   private readonly themesService = inject(ThemesService);
   private readonly pointsService = inject(PointsService);
   private readonly auth = inject(AuthService);
+  private readonly el: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly injector = inject(Injector);
 
   protected readonly theme = signal<ThemeDetail | null>(null);
   protected readonly loading = signal(true);
@@ -36,6 +52,11 @@ export class ThemeDetailPage implements OnInit {
   protected readonly editingTitle = signal(false);
   protected readonly editingSubthemeId = signal<number | null>(null);
   protected readonly editingPointId = signal<number | null>(null);
+
+  protected readonly notesMode = signal<'edit' | 'preview'>('preview');
+  protected readonly notesRenderedHtml = signal('');
+  protected readonly savingNotes = signal(false);
+  protected notesContent = '';
 
   protected readonly subthemeForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
@@ -78,6 +99,16 @@ export class ThemeDetailPage implements OnInit {
       next: (theme) => {
         this.theme.set(theme);
         this.loading.set(false);
+        this.notesContent = theme.notes;
+        // A freshly-created theme has nothing to preview yet, so start in Edit; an
+        // already-documented theme is read far more often than edited, so start in Preview.
+        if (theme.notes.trim()) {
+          this.notesRenderedHtml.set(renderMarkdown(theme.notes));
+          this.notesMode.set('preview');
+          this.scheduleMermaidRender();
+        } else {
+          this.notesMode.set('edit');
+        }
         if (this.isOwner()) {
           this.loadShares();
         }
@@ -92,6 +123,44 @@ export class ThemeDetailPage implements OnInit {
   private loadShares(): void {
     this.themesService.listShares(this.themeId).subscribe({
       next: (shares) => this.shares.set(shares),
+    });
+  }
+
+  /** Mermaid needs its ```mermaid blocks (rendered as <pre class="mermaid"> by renderMarkdown)
+   * actually in the DOM before it can find and replace them with SVG — afterNextRender defers
+   * until Angular has committed the [innerHTML] update. */
+  private scheduleMermaidRender(): void {
+    runInInjectionContext(this.injector, () =>
+      afterNextRender(() => {
+        const nodes = this.el.nativeElement.querySelectorAll<HTMLElement>('pre.mermaid');
+        if (nodes.length === 0) {
+          return;
+        }
+        mermaid.run({ nodes: Array.from(nodes) }).catch((err: unknown) => console.error('Mermaid render failed', err));
+      }),
+    );
+  }
+
+  // --- notes ---
+
+  showNotesEdit(): void {
+    this.notesMode.set('edit');
+  }
+
+  showNotesPreview(): void {
+    this.notesRenderedHtml.set(renderMarkdown(this.notesContent));
+    this.notesMode.set('preview');
+    this.scheduleMermaidRender();
+  }
+
+  saveNotes(): void {
+    this.savingNotes.set(true);
+    this.themesService.update(this.themeId, { notes: this.notesContent }).subscribe({
+      next: () => {
+        this.savingNotes.set(false);
+        this.showNotesPreview();
+      },
+      error: () => this.savingNotes.set(false),
     });
   }
 
@@ -111,7 +180,7 @@ export class ThemeDetailPage implements OnInit {
       return;
     }
     const { title } = this.titleForm.getRawValue();
-    this.themesService.update(this.themeId, title).subscribe({
+    this.themesService.update(this.themeId, { title }).subscribe({
       next: () => {
         this.editingTitle.set(false);
         this.loadTheme();

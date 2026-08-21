@@ -65,6 +65,40 @@ def test_theme_detail_includes_subthemes_with_points(client):
     assert subthemes[0]["points"][0]["text"] == "Antioxidants"
 
 
+def test_theme_detail_notes_default_to_empty_string(client):
+    _login(client)
+    theme_id = client.post("/api/themes", json={"title": "Coffee vs tea"}).json()["id"]
+
+    resp = client.get(f"/api/themes/{theme_id}")
+    assert resp.json()["notes"] == ""
+
+
+def test_owner_can_update_notes(client):
+    _login(client)
+    theme_id = client.post("/api/themes", json={"title": "Coffee vs tea"}).json()["id"]
+
+    resp = client.patch(f"/api/themes/{theme_id}", json={"notes": "## Key takeaways\n\n- Drink tea"})
+    assert resp.status_code == 200
+
+    resp = client.get(f"/api/themes/{theme_id}")
+    assert resp.json()["notes"] == "## Key takeaways\n\n- Drink tea"
+
+
+def test_updating_notes_does_not_change_title_and_vice_versa(client):
+    _login(client)
+    theme_id = client.post("/api/themes", json={"title": "Coffee vs tea"}).json()["id"]
+
+    client.patch(f"/api/themes/{theme_id}", json={"notes": "Some takeaways"})
+    resp = client.get(f"/api/themes/{theme_id}")
+    assert resp.json()["title"] == "Coffee vs tea"
+    assert resp.json()["notes"] == "Some takeaways"
+
+    client.patch(f"/api/themes/{theme_id}", json={"title": "Coffee vs tea (v2)"})
+    resp = client.get(f"/api/themes/{theme_id}")
+    assert resp.json()["title"] == "Coffee vs tea (v2)"
+    assert resp.json()["notes"] == "Some takeaways"
+
+
 def test_export_markdown_includes_title_stats_and_points(client):
     _login(client)
     theme_id = client.post("/api/themes", json={"title": "Coffee vs tea"}).json()["id"]

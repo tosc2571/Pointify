@@ -41,6 +41,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 1, avg_rating: 4, pro_count: 1, contra_count: 0 },
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [] }],
     };
@@ -70,6 +71,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [] }],
     };
@@ -121,6 +123,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [],
     };
@@ -147,6 +150,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [],
     };
@@ -171,6 +175,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [],
     };
@@ -199,6 +204,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [],
     };
@@ -240,6 +246,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [],
     };
@@ -270,6 +277,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [] }],
     };
@@ -329,6 +337,7 @@ describe('ThemeDetailPage', () => {
       title: 'Coffee vs tea',
       created_at: '2026-01-01T00:00:00Z',
       owner_id: 1,
+      notes: '',
       stats: { total_points: 1, avg_rating: 4, pro_count: 1, contra_count: 0 },
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [point] }],
     };
@@ -368,5 +377,41 @@ describe('ThemeDetailPage', () => {
       ...theme,
       subthemes: [{ id: 1, title: 'Health', theme_id: 1, points: [] }],
     });
+  });
+
+  it('starts notes in edit mode when empty, saves, and renders Markdown in preview', () => {
+    const fixture = TestBed.createComponent(ThemeDetailPage);
+    fixture.detectChanges();
+
+    const theme: ThemeDetail = {
+      id: 1,
+      title: 'Coffee vs tea',
+      created_at: '2026-01-01T00:00:00Z',
+      owner_id: 1,
+      notes: '',
+      stats: { total_points: 0, avg_rating: 0, pro_count: 0, contra_count: 0 },
+      subthemes: [],
+    };
+    httpMock.expectOne('/api/themes/1').flush(theme);
+    fixture.detectChanges();
+
+    // Empty notes -> starts in Edit mode, showing the textarea.
+    expect(fixture.nativeElement.querySelector('.notes-editor')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.markdown-preview')).toBeFalsy();
+
+    const instance = fixture.componentInstance as unknown as { notesContent: string };
+    instance.notesContent = '## Key takeaways\n\n- Tea is fine';
+    fixture.nativeElement.querySelector('.notes-toolbar-actions .save-button').click();
+
+    const req = httpMock.expectOne('/api/themes/1');
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ notes: '## Key takeaways\n\n- Tea is fine' });
+    req.flush({ ...theme, notes: '## Key takeaways\n\n- Tea is fine' });
+    fixture.detectChanges();
+
+    // Save switches to Preview and renders the Markdown as HTML.
+    const preview = fixture.nativeElement.querySelector('.markdown-preview');
+    expect(preview).toBeTruthy();
+    expect(preview.innerHTML).toContain('<h2>Key takeaways</h2>');
   });
 });

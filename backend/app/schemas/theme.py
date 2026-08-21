@@ -11,6 +11,7 @@ class ThemeCreate(BaseModel):
 
 class ThemeUpdate(BaseModel):
     title: str | None = None
+    notes: str | None = None
 
 
 class ThemeOut(BaseModel):
@@ -32,3 +33,4 @@ class ThemeStats(BaseModel):
 class ThemeDetailOut(ThemeOut):
     stats: ThemeStats
     subthemes: list[SubThemeWithPoints]
+    notes: str
