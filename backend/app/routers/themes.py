@@ -3,10 +3,10 @@ from fastapi.responses import Response
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, require_theme_access, require_user
+from app.dependencies import get_db, require_theme_access, require_theme_owner, require_user
 from app.models import PointType, Theme, ThemeShare, User
 from app.schemas.subtheme import SubThemeWithPoints
-from app.schemas.theme import ThemeCreate, ThemeDetailOut, ThemeOut, ThemeStats
+from app.schemas.theme import ThemeCreate, ThemeDetailOut, ThemeOut, ThemeStats, ThemeUpdate
 
 router = APIRouter(prefix="/api/themes", tags=["themes"])
 
@@ -83,3 +83,22 @@ def get_theme(theme: Theme = Depends(require_theme_access)):
 def export_theme_markdown(theme: Theme = Depends(require_theme_access)):
     markdown = _render_markdown(theme, _compute_stats(theme))
     return Response(content=markdown, media_type="text/markdown; charset=utf-8")
+
+
+@router.patch("/{theme_id}", response_model=ThemeOut)
+def update_theme(
+    payload: ThemeUpdate,
+    theme: Theme = Depends(require_theme_access),
+    db: Session = Depends(get_db),
+):
+    if payload.title is not None:
+        theme.title = payload.title
+    db.commit()
+    db.refresh(theme)
+    return theme
+
+
+@router.delete("/{theme_id}", status_code=204)
+def delete_theme(theme: Theme = Depends(require_theme_owner), db: Session = Depends(get_db)):
+    db.delete(theme)
+    db.commit()

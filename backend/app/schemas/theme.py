@@ -9,6 +9,10 @@ class ThemeCreate(BaseModel):
     title: str
 
 
+class ThemeUpdate(BaseModel):
+    title: str | None = None
+
+
 class ThemeOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

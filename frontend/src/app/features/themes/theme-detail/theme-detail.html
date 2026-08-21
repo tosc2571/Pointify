@@ -6,10 +6,24 @@
   } @else if (notFound()) {
     <p class="empty">Theme not found.</p>
   } @else if (theme(); as t) {
-    <div class="title-row">
-      <h1>{{ t.title }}</h1>
-      <button type="button" class="export-button" (click)="exportMarkdown()">Export as Markdown</button>
-    </div>
+    @if (editingTitle()) {
+      <form class="title-edit" [formGroup]="titleForm" (ngSubmit)="submitTitleEdit()">
+        <input type="text" formControlName="title" />
+        <button type="submit" [disabled]="titleForm.invalid">Save</button>
+        <button type="button" class="cancel-button" (click)="cancelEditTitle()">Cancel</button>
+      </form>
+    } @else {
+      <div class="title-row">
+        <h1>{{ t.title }}</h1>
+        <div class="title-actions">
+          <button type="button" class="link-button" (click)="startEditTitle()">Rename</button>
+          @if (isOwner()) {
+            <button type="button" class="link-button danger" (click)="deleteTheme()">Delete</button>
+          }
+          <button type="button" class="export-button" (click)="exportMarkdown()">Export as Markdown</button>
+        </div>
+      </div>
+    }
 
     <dl class="stats">
       <div>
@@ -71,20 +85,82 @@
       <ul class="subthemes">
         @for (subtheme of t.subthemes; track subtheme.id) {
           <li>
-            <div class="subtheme-header">
-              <span class="subtheme-title">{{ subtheme.title }}</span>
-              <button type="button" class="link-button" (click)="toggleAddPoint(subtheme.id)">
-                {{ expandedSubthemeId() === subtheme.id ? 'Cancel' : '+ Add point' }}
-              </button>
-            </div>
+            @if (editingSubthemeId() === subtheme.id) {
+              <form class="subtheme-edit" [formGroup]="subthemeEditForm" (ngSubmit)="submitSubthemeEdit(subtheme.id)">
+                <input type="text" formControlName="title" />
+                <button type="submit" [disabled]="subthemeEditForm.invalid">Save</button>
+                <button type="button" class="cancel-button" (click)="cancelEditSubtheme()">Cancel</button>
+              </form>
+            } @else {
+              <div class="subtheme-header">
+                <span class="subtheme-title">{{ subtheme.title }}</span>
+                <div class="subtheme-actions">
+                  <button type="button" class="link-button" (click)="toggleAddPoint(subtheme.id)">
+                    {{ expandedSubthemeId() === subtheme.id ? 'Cancel' : '+ Add point' }}
+                  </button>
+                  <button type="button" class="link-button" (click)="startEditSubtheme(subtheme.id, subtheme.title)">
+                    Rename
+                  </button>
+                  <button
+                    type="button"
+                    class="link-button danger"
+                    (click)="deleteSubtheme(subtheme.id, subtheme.title)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            }
 
             @if (subtheme.points.length > 0) {
               <ul class="points">
                 @for (point of subtheme.points; track point.id) {
                   <li>
-                    <span class="point-type" [class.contra]="point.type === 'contra'">{{ point.type }}</span>
-                    <span class="point-text">{{ point.text }}</span>
-                    <span class="point-rating">★ {{ point.rating }}</span>
+                    @if (editingPointId() === point.id) {
+                      <form
+                        class="new-point"
+                        [formGroup]="pointEditForm"
+                        (ngSubmit)="submitPointEdit(subtheme.id, point.id)"
+                      >
+                        <label>
+                          Type
+                          <select formControlName="type">
+                            <option value="pro">Pro</option>
+                            <option value="contra">Contra</option>
+                          </select>
+                        </label>
+                        <label>
+                          Rating
+                          <select formControlName="rating">
+                            <option [value]="1">1</option>
+                            <option [value]="2">2</option>
+                            <option [value]="3">3</option>
+                            <option [value]="4">4</option>
+                            <option [value]="5">5</option>
+                          </select>
+                        </label>
+                        <label class="text-label">
+                          Text
+                          <input type="text" formControlName="text" />
+                        </label>
+                        <button type="submit" [disabled]="pointEditForm.invalid">Save</button>
+                        <button type="button" class="cancel-button" (click)="cancelEditPoint()">Cancel</button>
+                      </form>
+                    } @else {
+                      <span class="point-type" [class.contra]="point.type === 'contra'">{{ point.type }}</span>
+                      <span class="point-text">{{ point.text }}</span>
+                      <span class="point-rating">★ {{ point.rating }}</span>
+                      <span class="point-actions">
+                        <button type="button" class="link-button" (click)="startEditPoint(point)">Edit</button>
+                        <button
+                          type="button"
+                          class="link-button danger"
+                          (click)="deletePoint(subtheme.id, point.id)"
+                        >
+                          Delete
+                        </button>
+                      </span>
+                    }
                   </li>
                 }
               </ul>

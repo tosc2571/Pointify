@@ -11,6 +11,12 @@ class PointCreate(BaseModel):
     rating: int = Field(ge=1, le=5)
 
 
+class PointUpdate(BaseModel):
+    type: PointType
+    text: str
+    rating: int = Field(ge=1, le=5)
+
+
 class PointOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -17,4 +17,12 @@ export class PointsService {
   create(subthemeId: number, payload: PointCreatePayload): Observable<Point> {
     return this.http.post<Point>(`/api/subthemes/${subthemeId}/points`, payload);
   }
+
+  update(subthemeId: number, pointId: number, payload: PointCreatePayload): Observable<Point> {
+    return this.http.patch<Point>(`/api/subthemes/${subthemeId}/points/${pointId}`, payload);
+  }
+
+  delete(subthemeId: number, pointId: number): Observable<void> {
+    return this.http.delete<void>(`/api/subthemes/${subthemeId}/points/${pointId}`);
+  }
 }

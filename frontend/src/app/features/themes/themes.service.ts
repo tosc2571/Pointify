@@ -20,8 +20,24 @@ export class ThemesService {
     return this.http.post<Theme>('/api/themes', { title });
   }
 
+  update(themeId: number, title: string): Observable<Theme> {
+    return this.http.patch<Theme>(`/api/themes/${themeId}`, { title });
+  }
+
+  delete(themeId: number): Observable<void> {
+    return this.http.delete<void>(`/api/themes/${themeId}`);
+  }
+
   createSubtheme(themeId: number, title: string): Observable<SubTheme> {
     return this.http.post<SubTheme>(`/api/themes/${themeId}/subthemes`, { title });
+  }
+
+  updateSubtheme(themeId: number, subthemeId: number, title: string): Observable<SubTheme> {
+    return this.http.patch<SubTheme>(`/api/themes/${themeId}/subthemes/${subthemeId}`, { title });
+  }
+
+  deleteSubtheme(themeId: number, subthemeId: number): Observable<void> {
+    return this.http.delete<void>(`/api/themes/${themeId}/subthemes/${subthemeId}`);
   }
 
   listShares(themeId: number): Observable<Share[]> {
